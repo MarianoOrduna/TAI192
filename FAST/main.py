@@ -45,6 +45,14 @@ def actualizar(id:int,usuarioActualizado:dict):
             return usuarios[index]
     raise HTTPException(status_code=400, detail="El usuario no existe")
 
+#endpoint Eliminar Usuario
+@app.delete('/usuarios/{id}', tags=['Operaciones CRUD'])
+def eliminar(id:int,usuarioEliminado:dict):
+    for usr in (usuarios):
+        if usr["id"] == id:
+            usuarios.remove(usr)
+    raise HTTPException(status_code=400, detail="El usuario no existe")
+
 
 #aqui es importante agregar parametros
 #En los parametros va primero el nombre y despues el tipo de dato
