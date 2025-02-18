@@ -49,7 +49,7 @@ def consultarTarea(id:int):
     return{'Tarea':id}
 
 #Crear una nueva tarea
-@app.post('/tarea/',tags=['operaciones CRUD'])
+@app.post('/tarea/',tags=['Operaciones CRUD'])
 def agregarTarea(tarea:dict):
     for usr in tareas:
         if usr ['id']== tarea.get("id"):
