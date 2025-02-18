@@ -44,6 +44,15 @@ def leerTareas():
     return{'Las tareas son':tareas}
 
 #end point para ver una tarea por su id
-@app.get('/tareas/{id}', tags=['Operaciones CRUD'])
+@app.get('/tarea/{id}', tags=['Operaciones CRUD'])
 def consultarTarea(id:int):
     return{'Tarea':id}
+
+#Crear una nueva tarea
+@app.post('/tarea/',tags=['operaciones CRUD'])
+def agregarTarea(tarea:dict):
+    for usr in tareas:
+        if usr ['id']== tarea.get("id"):
+            raise HTTPException(status_code=400, detail='ID ya existente')
+    tareas.append(tarea)   
+    return tarea
