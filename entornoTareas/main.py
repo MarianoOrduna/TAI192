@@ -58,12 +58,21 @@ def agregarTarea(tarea:dict):
     return tarea
 
 #Endpoint para actualizar una tarea existente
-@app.put('/usuarios/{id}',tags=['Operaciones CRUD'])
+@app.put('/tareas/{id}',tags=['Operaciones CRUD'])
 def actualizar(id:int,tareaActualizada:dict):
     for index, usr in enumerate(tareas):
         if usr['id'] == id:
             tareas[index].update(tareaActualizada)
             return tareas[index]
     raise HTTPException(status_code=400, detail='La tarea no existe')
+
+#Endpoint eliminar una tarea
+@app.delete('/tareas/{id}', tags=['Operaciones CRUD'])
+def eliminar(id:int,tareaEliminada:dict):
+    for usr in[tareaEliminada]:
+        if usr["id"]==id:
+            tareas.remove(usr)
+    raise HTTPException(status_code=400, detail='La tarea no existe')
+
 
 
