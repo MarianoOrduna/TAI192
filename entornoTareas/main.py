@@ -42,3 +42,8 @@ def home():
 @app.get("/consultarTareas", tags=['Operaciones CRUD'])
 def leerTareas():
     return{'Las tareas son':tareas}
+
+#end point para ver una tarea por su id
+@app.get('/tareas/{id}', tags=['Operaciones CRUD'])
+def consultarTarea(id:int):
+    return{'Tarea':id}
