@@ -1,47 +1,49 @@
-from fastapi import FastAPI,HTTPException
-from typing import Optional
+from fastapi import FastAPI, HTTPException
+from typing import Optional, List
+from models import modeloUsuario
 
 app = FastAPI(
-    title = 'Mi PrimerAPI 192',
-    description = 'Mariano',
-    version = '1.0.1'
+    title='My FastAPI 192', 
+    description='API de Mariano',
+    version='1.0.1',
 )
 
-usuarios = [
-    {"id": 1, "Nombre": "Mario", "Edad": 21},
-    {"id": 2, "Nombre": "Gelipe", "Edad": 20},
-    {"id": 3, "Nombre": "Alonso", "Edad": 22},
-    {"id": 4, "Nombre": "Mariano", "Edad": 23}
+
+
+#BD ficticia
+
+usuarios=[
+    {"id":1,"nombre":"Jelipe","edad":20,"correo":"correo1@gmail.com"},
+    {"id":2,"nombre":"Kevin","edad":23,"correo":"correo2@gmail.com"},
+    {"id":3,"nombre":"Manlio","edad":26,"correo":"correo3@gmail.com"},
+    {"id":4,"nombre":"Mari","edad":29,"correo":"correo4@gmail.com"}
 ]
 
-
-
-#Endpoint home
+# Endpoint home
 @app.get('/', tags=['Hola Mundo'])
 def home():
     return {'hello': 'world FastAPI'}
 
-
-#endpoint Consulta todos
-@app.get('/todosUsuarios', tags=['Operaciones CRUD'])
+# Endpoint CONSULTA TODOS
+@app.get('/todoUsuarios', response_model= List[modeloUsuario] ,tags=['Operaciones CRUD'])
 def leerUsuarios():
-    return{'Los usuarios registrados son': usuarios}
+    return usuarios
 
 #endpoint agregar nuevos
-@app.post('/usuario/', tags=['Operaciones CRUD'])
-def agregarUsuario(usuario:dict):
+@app.post('/usuario/',response_model= modeloUsuario, tags=['Operaciones CRUD'])
+def agregarUsuario(usuario:modeloUsuario):
     for usr in usuarios:
-        if usr["id"] == usuario.get("id"):
+        if usr["id"] == usuario.id:
             raise HTTPException(status_code=400, detail="ID ya existente")
     usuarios.append(usuario)
     return usuario
 
 #enpoint actualizar usuarios
-@app.put('/usuarios/{id}',tags=['Operaciones CRUD'])
-def actualizar(id:int,usuarioActualizado:dict):
+@app.put('/usuarios/{id}',response_model= modeloUsuario, tags=['Operaciones CRUD'])
+def actualizar(id:int,usuarioActualizado:modeloUsuario):
     for index, usr in enumerate(usuarios):
         if usr["id"] == id:
-            usuarios[index].update(usuarioActualizado)
+            usuarios[index]=usuarioActualizado.model_dump()
             return usuarios[index]
     raise HTTPException(status_code=400, detail="El usuario no existe")
 

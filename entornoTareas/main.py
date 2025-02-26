@@ -68,11 +68,12 @@ def actualizar(id:int,tareaActualizada:dict):
 
 #Endpoint eliminar una tarea
 @app.delete('/tareas/{id}', tags=['Operaciones CRUD'])
-def eliminar(id:int,tareaEliminada:dict):
-    for usr in[tareaEliminada]:
-        if usr["id"]==id:
-            tareas.remove(usr)
-    raise HTTPException(status_code=400, detail='La tarea no existe')
+def eliminar(id: int):
+    for tarea in tareas:
+        if tarea["id"] == id:
+            tareas.remove(tarea)
+            return {"Tarea eliminada"}
+    raise HTTPException(status_code=404, detail="La tarea no existe")
 
 
 
