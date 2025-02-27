@@ -43,6 +43,7 @@ def home():
 def leerTareas():
     return{'Las tareas son':tareas}
 
+
 #end point para ver una tarea por su id
 @app.get('/tarea/{id}', tags=['Operaciones CRUD'])
 def consultarTarea(id:int):
