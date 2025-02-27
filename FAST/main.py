@@ -1,14 +1,15 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from typing import Optional, List
-from models import modeloUsuario
+from modelsPydantic import modeloUsuario, modeloAuth
+from genToken import createToken
+
 
 app = FastAPI(
     title='My FastAPI 192', 
-    description='API de Mariano',
+    description='API de MarianoS',
     version='1.0.1',
 )
-
-
 
 #BD ficticia
 
@@ -24,71 +25,45 @@ usuarios=[
 def home():
     return {'hello': 'world FastAPI'}
 
+# Endpoint Autenticacion
+@app.post('/auth', tags=['Autentificación'])
+def login(autorizacion:modeloAuth):
+    if autorizacion.correo == 'Mariano@example.com' and autorizacion.passw == '123456789':
+        token:str = createToken(autorizacion.model_dump())
+        print(token)
+        return JSONResponse(content=token)
+    else:
+        return{"Aviso": "Usuario no autorizado"}
+
 # Endpoint CONSULTA TODOS
 @app.get('/todoUsuarios', response_model= List[modeloUsuario] ,tags=['Operaciones CRUD'])
 def leerUsuarios():
     return usuarios
 
-#endpoint agregar nuevos
-@app.post('/usuario/',response_model= modeloUsuario, tags=['Operaciones CRUD'])
+# Endpoint Agregar nuevos
+@app.post('/usuario/',  response_model= modeloUsuario ,tags=['Operaciones CRUD'])
 def agregarUsuario(usuario:modeloUsuario):
     for usr in usuarios:
         if usr["id"] == usuario.id:
-            raise HTTPException(status_code=400, detail="ID ya existente")
+            raise HTTPException(status_code=400, detail="El ID ya existe")
     usuarios.append(usuario)
     return usuario
 
-#enpoint actualizar usuarios
-@app.put('/usuarios/{id}',response_model= modeloUsuario, tags=['Operaciones CRUD'])
-def actualizar(id:int,usuarioActualizado:modeloUsuario):
+# Endpoint Actualizar Usuarios
+@app.put('/usuario/{id}',  response_model= modeloUsuario ,tags=['Operaciones CRUD'])
+def actualizarUsuario(id:int, usuarioActualizado:modeloUsuario):
     for index, usr in enumerate(usuarios):
         if usr["id"] == id:
-            usuarios[index]=usuarioActualizado.model_dump()
+            usuarios[index] = usuarioActualizado.model_dump()
             return usuarios[index]
     raise HTTPException(status_code=400, detail="El usuario no existe")
-
-#endpoint Eliminar Usuario
-@app.delete('/usuarios/{id}', tags=['Operaciones CRUD'])
-def eliminar(id:int,usuarioEliminado:dict):
-    for usr in (usuarios):
-        if usr["id"] == id:
-            usuarios.remove(usr)
-    raise HTTPException(status_code=400, detail="El usuario no existe")
-
-
-#aqui es importante agregar parametros
-#En los parametros va primero el nombre y despues el tipo de dato
-
-
-
-#endpoint promedio
-#@app.get('/promedio', tags=['Mi Calificacion Parcial'])
-#def promedio():
-    #return 10
     
-#endpoint parametros
-#@app.get('/usuario/{id}', tags=['Parametro Obligatorio'])
-#def ConsultaUsuario(id:int):
-    #conectamos a la Bd
-    #consultamos
- #   return {'Se encontro el Usuario':id}
-
-# Endpoint parámetro opcional
-#@app.get("/usuario/", tags=["Parametro Opcional"])
-#def consultausuario(id: Optional[int] = None):
- #   if id is not None:
-  #      for usu in usuarios:
-   #         if usu["id"] == id:
-    #            return {"mensaje": "Usuario encontrado", "usuario": usu}
-        
-     #   return {"mensaje": f"No se encontró el usuario con id: {id}"}
-    #lse :
-     #   return {"mensaje": "No se proporcionó un id"}
-
-
-#cd fast
-#Get-ExecutionPolicy 
-#.\entornofast\Scripts\activate
-#uvicorn main:app --reload --port 5000
-#Get-ExecutionPolicy
-#Set-ExecutionPolicy Unrestricted -Scope Process
+# Endpoint Eliminar usuario
+@app.delete('/usuario/{id}', tags=['Operaciones CRUD'])
+def eliminarUsuario(id: int):
+    for usr in usuarios:
+        if usr["id"] == id:
+            usuarios.remove(usr)  # Corrección aquí
+            return {"Mensaje": "El usuario se eliminó al llavaso"}
+    
+    raise HTTPException(status_code=400, detail="El usuario no existe")
