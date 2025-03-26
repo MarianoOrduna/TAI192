@@ -1,16 +1,20 @@
-from fastapi import FastAPI, HTTPException,Depends
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from typing import Optional, List
 from modelsPydantic import modeloUsuario, modeloAuth
 from genToken import createToken
 from middlewares import BearerJWT
-
+from DB.conexion import Session, engine, Base
+from models.modelsDB import User
 
 app = FastAPI(
     title='My FastAPI 192', 
-    description='API de MarianoS',
+    description='API de Mariano',
     version='1.0.1',
 )
+
+Base.metadata.create_all(bind=engine)
 
 #BD ficticia
 
@@ -27,9 +31,9 @@ def home():
     return {'hello': 'world FastAPI'}
 
 # Endpoint Autenticacion
-@app.post('/auth', tags=['Autentificación'])
+@app.post('/auth',tags=['Autentificación'])
 def login(autorizacion:modeloAuth):
-    if autorizacion.correo == 'Mariano@example.com' and autorizacion.passw == '123456789':
+    if autorizacion.correo == 'mariano@example.com' and autorizacion.passw == '123456789':
         token:str = createToken(autorizacion.model_dump())
         print(token)
         return JSONResponse(content=token)
@@ -37,18 +41,57 @@ def login(autorizacion:modeloAuth):
         return{"Aviso": "Usuario no autorizado"}
 
 # Endpoint CONSULTA TODOS
-@app.get('/todoUsuarios', dependencies=[Depends(BearerJWT())], response_model= List[modeloUsuario] ,tags=['Operaciones CRUD'])
+@app.get('/todoUsuarios', tags=['Operaciones CRUD'])
 def leerUsuarios():
-    return usuarios
+    db= Session()
+    try:
+        consulta=db.query(User).all()
+        return JSONResponse(content= jsonable_encoder(consulta))
+    
+    except Exception as e:
+        return JSONResponse(status_code=500,
+                            content={"message": "Error al agregar usuario",
+                                     "Excepcion": str(e)})
+    finally:
+        db.close()
+# Endpoint buscar por id
+@app.get('/usuario/{id}', tags=['Operaciones CRUD'])
+def buscarUno(id:int):
+    db= Session()
+    try:
+        consultauno=db.query(User).filter(User.id == id).first()
+
+        if not consultauno:
+            return JSONResponse(status_code=404,content= {"Mensaje":"Usuario no encontrado"})
+        
+        return JSONResponse(content= jsonable_encoder(consultauno))
+    
+    except Exception as e:
+        return JSONResponse(status_code=500,
+                            content={"message": "Error al agregar usuario",
+                                     "Excepcion": str(e)})
+    finally:
+        db.close()
 
 # Endpoint Agregar nuevos
 @app.post('/usuario/',  response_model= modeloUsuario ,tags=['Operaciones CRUD'])
 def agregarUsuario(usuario:modeloUsuario):
-    for usr in usuarios:
-        if usr["id"] == usuario.id:
-            raise HTTPException(status_code=400, detail="El ID ya existe")
-    usuarios.append(usuario)
-    return usuario
+    db= Session()
+    try:
+        db.add( User( **usuario.model_dump()))
+        db.commit()
+        return JSONResponse(status_code=201,
+                            content={"message": "Usuario agregado con exito",
+                                      "usuario":usuario.model_dump() })
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(status_code=500,
+                            content={"message": "Error al agregar usuario",
+                                     "Excepcion": str(e)})
+    finally:
+        db.close()
+    
+
 
 # Endpoint Actualizar Usuarios
 @app.put('/usuario/{id}',  response_model= modeloUsuario ,tags=['Operaciones CRUD'])
