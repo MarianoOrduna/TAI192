@@ -111,3 +111,48 @@ def eliminarUsuario(id: int):
             return {"Mensaje": "El usuario se eliminó al llavaso"}
     
     raise HTTPException(status_code=400, detail="El usuario no existe")
+
+# Endpoint eliminar usuario DB
+@app.delete('/usuarioDB/{id}', tags=['Operaciones CRUD'])
+def eliminarUsuario(id:int):
+    db= Session()
+    try:
+        eliminarUsuario=db.query(User).filter(User.id == id).first()
+
+        if not eliminarUsuario:
+            return JSONResponse(status_code=404,content= {"Mensaje":"Usuario no encontrado"})
+        else:
+            db.delete(eliminarUsuario)
+            db.commit()
+        return JSONResponse(status_code=404,content= {"Mensaje":"Usuario Eliminado con exito"})
+    
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(status_code=500,
+                            content={"message": "Error al agregar usuario",
+                                     "Excepcion": str(e)})
+    finally:
+        db.close()
+
+
+# Endpoint actualizar usuario DB
+@app.put("/usuariosADB/{id}", response_model=modeloUsuario, tags=['Operaciones CRUD'])
+def actualizar(id: int, usuarioActualizado: modeloUsuario):
+    db = Session()
+    try:
+        usuario = db.query(User).filter(User.id == id).first()
+
+        if not usuario:
+            return JSONResponse(status_code=404, content={"Mensaje": "Usuario no encontrado"})
+
+        db.query(User).filter(User.id == id).update(usuarioActualizado.model_dump())
+        db.commit()
+
+        return JSONResponse(status_code=200, content={"Mensaje": "Usuario actualizado correctamente"})
+
+    except Exception:
+        db.rollback()
+        return JSONResponse(status_code=500, content={"Mensaje": "Error al actualizar usuario"})
+
+    finally:
+        db.close()
